@@ -9,11 +9,27 @@ function init {
 
 function start {
   . .venv/bin/activate && \
+  nohup uvicorn app.main:app --host 0.0.0.0 --port 8000 &
+}
+
+function start-fg {
+  . .venv/bin/activate && \
   uvicorn app.main:app --host 0.0.0.0 --port 8000
 }
 
 function start-local {
   uvicorn app.main:app --host 0.0.0.0 --port 8000
+}
+
+function end {
+	str=$(ps -e | grep uvicorn)
+	pid=`expr "$(echo $str)" : '\([0-9]*\)'`
+	if [ "${#pid}" -ne "0" ]; then
+		kill -9 $pid && \
+		echo "server ended"
+	else
+		echo "error to end server"
+	fi
 }
 
 function clean {
