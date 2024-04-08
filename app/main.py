@@ -1,8 +1,11 @@
 import asyncio
-from typing import Literal
-from fastapi import FastAPI
+from typing import Literal, Callable
+from fastapi import FastAPI, Request, HTTPException
 from pydantic import BaseModel
 from fastapi.responses import FileResponse, JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.types import ASGIApp
 from app.generator import generator
 from app.util import convert
 
@@ -12,6 +15,28 @@ class MusicBody(BaseModel):
     tempo: Literal['slow', 'moderate', 'fast']
 
 app = FastAPI()
+
+# 허용할 IP 주소
+allowed_ip = "127.0.0.1"  # 자기 자신만 허용
+
+# IP 주소 검증 미들웨어
+class IPValidationMiddleware(BaseHTTPMiddleware):
+    def __init__(self, app: ASGIApp, allowed_ip: str):
+        super().__init__(app)
+        self.allowed_ip = allowed_ip
+
+    async def dispatch(self, request: Request, call_next: Callable):
+        if request.client is None:
+            raise HTTPException(status_code=403, detail="Forbidden")
+        
+        if request.client.host != self.allowed_ip:
+            # 허용되지 않은 IP 주소에서 온 요청이면 403 Forbidden 반환
+            raise HTTPException(status_code=403, detail="Forbidden")
+        response = await call_next(request)
+        return response
+
+# IP 검증 미들웨어를 애플리케이션에 적용
+app.add_middleware(IPValidationMiddleware, allowed_ip=allowed_ip)
 
 @app.post('/music', status_code=200)
 def get_music(music_body: MusicBody):
