@@ -32,6 +32,24 @@ function end {
 	fi
 }
 
+function log {
+  LOG_FILE="./nohup.out"
+  if [ -e $LOG_FILE ]; then
+    tail -f $LOG_FILE 
+  else
+    echo "there's no log file"
+  fi
+}
+
+function log-clear {
+  LOG_FILE="./nohup.out"
+  if [ -e $LOG_FILE ]; then
+    echo "" > $LOG_FILE
+  else
+    echo "there's no log file"
+  fi
+}
+
 function clean {
   deactivate
   rm -rf .venv
