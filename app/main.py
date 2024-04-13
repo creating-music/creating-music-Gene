@@ -1,6 +1,6 @@
 import asyncio
-from typing import Literal, Callable
-from fastapi import FastAPI, Request, HTTPException
+from typing import Literal, Callable, final
+from fastapi import FastAPI, BackgroundTasks, Request, HTTPException
 from pydantic import BaseModel
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -8,13 +8,23 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
 from app.generator import generator
 from app.util import convert
+import uuid
+import concurrent.futures
+import os
 
 class MusicBody(BaseModel):
     genre: Literal['newage', 'retro']
     mood: Literal['happy', 'sad', 'grand']
     tempo: Literal['slow', 'moderate', 'fast']
+    uuid: str
 
 app = FastAPI()
+
+executor = concurrent.futures.ProcessPoolExecutor(max_workers=4)
+
+assets_dir_path = './app/assets/'
+music_dir_path = assets_dir_path + 'music/'
+
 
 # 허용할 IP 주소
 allowed_ip = "127.0.0.1"  # 자기 자신만 허용
@@ -38,12 +48,28 @@ class IPValidationMiddleware(BaseHTTPMiddleware):
 # IP 검증 미들웨어를 애플리케이션에 적용
 app.add_middleware(IPValidationMiddleware, allowed_ip=allowed_ip)
 
+async def delete_music_file(music_uuid: str):
+    global music_dir_path
+
+    midi_file = music_dir_path + f'{music_uuid}.mid'
+    mp3_file = music_dir_path + f'{music_uuid}.mp3'
+
+    timeout = 100
+
+    try:
+        await asyncio.sleep(timeout)
+        os.remove(midi_file)
+        os.remove(mp3_file)
+        print(f'deleted {music_uuid}.mid, {music_uuid}.mp3')
+    except:
+        print('failed to remove')
+
 @app.post('/music', status_code=200)
-def get_music(music_body: MusicBody):
-    music_dir_path = './app/assets/music/'
-    midi_file = music_dir_path + 'output.mid'
-    mp3_file = music_dir_path + 'output.mp3'
-    soundfont_path = music_dir_path + 'soundfont.sf2'
+async def get_music(music_body: MusicBody, background_tasks: BackgroundTasks):
+    uuid_prefix = music_body.uuid
+    midi_file = music_dir_path + f'{uuid_prefix}.mid'
+    mp3_file = music_dir_path + f'{uuid_prefix}.mp3'
+    soundfont_path = assets_dir_path + 'soundfont.sf2'
 
     header = {
         'isSuccess': 'true',
@@ -67,7 +93,8 @@ def get_music(music_body: MusicBody):
         return JSONResponse('', headers=header)
     
     try:
-        convert.midi_to_mp3(midi_file, soundfont_path, mp3_file)
+        loop = asyncio.get_event_loop()
+        await loop.run_in_executor(executor, convert.midi_to_mp3, midi_file, soundfont_path, mp3_file)
     except:
         header['isSuccess'] = 'false'
         header['code'] = '500'
@@ -77,5 +104,7 @@ def get_music(music_body: MusicBody):
         return JSONResponse('', headers=header)
 
     header['message'] = 'music generation success'
+
+    background_tasks.add_task(delete_music_file, uuid_prefix)
 
     return FileResponse(mp3_file, headers=header)
