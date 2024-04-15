@@ -20,7 +20,7 @@ class MusicBody(BaseModel):
 
 app = FastAPI()
 
-executor = concurrent.futures.ProcessPoolExecutor(max_workers=4)
+executor = concurrent.futures.ProcessPoolExecutor(max_workers=1)
 
 assets_dir_path = './app/assets/'
 music_dir_path = assets_dir_path + 'music/'
