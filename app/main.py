@@ -16,11 +16,10 @@ class MusicBody(BaseModel):
     genre: Literal['newage', 'retro']
     mood: Literal['happy', 'sad', 'grand']
     tempo: Literal['slow', 'moderate', 'fast']
-    uuid: str
 
 app = FastAPI()
 
-executor = concurrent.futures.ProcessPoolExecutor(max_workers=4)
+executor = concurrent.futures.ProcessPoolExecutor(max_workers=1)
 
 assets_dir_path = './app/assets/'
 music_dir_path = assets_dir_path + 'music/'
@@ -66,7 +65,7 @@ async def delete_music_file(music_uuid: str):
 
 @app.post('/music', status_code=200)
 async def get_music(music_body: MusicBody, background_tasks: BackgroundTasks):
-    uuid_prefix = music_body.uuid
+    uuid_prefix = str(uuid.uuid1())
     midi_file = music_dir_path + f'{uuid_prefix}.mid'
     mp3_file = music_dir_path + f'{uuid_prefix}.mp3'
     soundfont_path = assets_dir_path + 'soundfont.sf2'
