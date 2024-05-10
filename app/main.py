@@ -24,29 +24,6 @@ executor = concurrent.futures.ProcessPoolExecutor(max_workers=1)
 assets_dir_path = './app/assets/'
 music_dir_path = assets_dir_path + 'music/'
 
-
-# 허용할 IP 주소
-allowed_ip = "127.0.0.1"  # 자기 자신만 허용
-
-# IP 주소 검증 미들웨어
-class IPValidationMiddleware(BaseHTTPMiddleware):
-    def __init__(self, app: ASGIApp, allowed_ip: str):
-        super().__init__(app)
-        self.allowed_ip = allowed_ip
-
-    async def dispatch(self, request: Request, call_next: Callable):
-        if request.client is None:
-            raise HTTPException(status_code=403, detail="Forbidden")
-        
-        if request.client.host != self.allowed_ip:
-            # 허용되지 않은 IP 주소에서 온 요청이면 403 Forbidden 반환
-            raise HTTPException(status_code=403, detail="Forbidden")
-        response = await call_next(request)
-        return response
-
-# IP 검증 미들웨어를 애플리케이션에 적용
-app.add_middleware(IPValidationMiddleware, allowed_ip=allowed_ip)
-
 async def delete_music_file(music_uuid: str):
     global music_dir_path
 
