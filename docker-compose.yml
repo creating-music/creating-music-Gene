@@ -1,0 +1,7 @@
+services:
+  fastapi:
+    image: "showpang/fastapi"
+    platform: linux/amd64
+    ports:
+      - "8000:8000"
+    build: .
