@@ -6,17 +6,6 @@ name: CI/CD using github actions & docker
 on:
   push:
     branches: [ "master", "develop" ]
-  workflow_dispatch:
-    inputs:
-      logLevel:
-        description: 'Log level'     
-        required: true
-        default: 'warning'
-      tags:
-        description: 'Test cicd'
-
-permissions:
-  contents: read
 
 jobs:
   CI-CD:
@@ -31,6 +20,7 @@ jobs:
         run: |
           pwd
           ls -al
+          ls -al ..
           docker compose build --no-cache
           docker push showpang/fastapi
 
