@@ -29,6 +29,8 @@ jobs:
       # docker build & push to develop
       - name: Docker build & push to dev
         run: |
+          pwd
+          ls -al
           docker compose build --no-cache
           docker push showpang/fastapi
 
