@@ -1,12 +1,6 @@
-FROM python:3.12-slim
+FROM showpang/fastapi-base
 
 WORKDIR /code
-
-RUN apt-get -y update \
-  && apt-get -y upgrade 
-
-# Install ffmpeg, fluidsynth
-RUN apt-get install -y ffmpeg fluidsynth
 
 # Copy dependency
 COPY ./requirements.txt /code/requirements.txt

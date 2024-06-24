@@ -4,4 +4,6 @@ services:
     platform: linux/amd64
     ports:
       - "8000:8000"
-    build: .
+    build:
+      context: .
+      dockerfile: './dockerfiles/Dockerfile'
