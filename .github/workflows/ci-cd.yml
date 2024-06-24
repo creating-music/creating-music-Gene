@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       # login to docker hub
       - name: Login to Docker Hub
         run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
@@ -20,9 +20,6 @@ jobs:
       # docker build & push to develop
       - name: Docker build & push to dev
         run: |
-          pwd
-          ls -al
-          ls -al ..
           docker compose build --no-cache
           docker push showpang/fastapi
 
