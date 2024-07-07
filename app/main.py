@@ -22,7 +22,7 @@ class MusicBody(BaseModel):
 
 app = FastAPI()
 
-executor = concurrent.futures.ProcessPoolExecutor(max_workers=1)
+# executor = concurrent.futures.ProcessPoolExecutor(max_workers=1)
 
 logger = logging.getLogger("main")
 logger.setLevel(logging.DEBUG)
