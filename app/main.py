@@ -12,7 +12,7 @@ from app.generator import generator
 from app.util import convert
 from app.util.logger import CustomFormatter
 import uuid
-import concurrent.futures
+from concurrent.futures import ThreadPoolExecutor
 import os
 
 class MusicBody(BaseModel):
@@ -22,7 +22,7 @@ class MusicBody(BaseModel):
 
 app = FastAPI()
 
-executor = concurrent.futures.ProcessPoolExecutor(max_workers=4)
+executor = ThreadPoolExecutor(max_workers=1)
 
 logger = logging.getLogger("main")
 logger.setLevel(logging.DEBUG)
@@ -84,8 +84,9 @@ async def get_music(music_body: MusicBody, background_tasks: BackgroundTasks):
         return JSONResponse('', headers=header)
     
     try:
-        loop = asyncio.get_event_loop()
-        await loop.run_in_executor(executor, convert.midi_to_mp3, midi_file, soundfont_path, mp3_file)
+        future = executor.submit(convert.midi_to_mp3, midi_file, soundfont_path, mp3_file)
+        future.result()
+
     except Exception as e:
         header['isSuccess'] = 'false'
         header['code'] = '500'
