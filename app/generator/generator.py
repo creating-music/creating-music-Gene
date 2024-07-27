@@ -66,7 +66,8 @@ def create_part(
     drum_pattern: DrumPattern,
     randomness: int,
     bar_part: int=8,
-    measure=(4,4)
+    measure=(4,4),
+    fill_in_pattern: DrumPattern | None=None,   # 없으면 걍 empty 로
 ):  
     bar_per_cp = chord_pattern.cp.bar_length
 
@@ -115,10 +116,23 @@ def create_part(
         chord_note_total.extend(chord.notes)
     chord_wrapper = NoteWrapper(chord_note_total, chord_pattern.division)
 
+    if fill_in_pattern is not None:
+        real_division = max(drum_pattern.division, fill_in_pattern.division)
+        real_drum_pattern = multiplyDivision(drum_pattern, real_division / drum_pattern.division) if real_division > drum_pattern.division else drum_pattern
+        real_fill_in_pattern = multiplyDivision(fill_in_pattern, real_division / fill_in_pattern.division) if real_division > fill_in_pattern.division else fill_in_pattern
+    else:
+        real_division = drum_pattern.division
+        real_drum_pattern = drum_pattern
+
     drum_note_total = []
-    for _ in range(bar_part // drum_pattern.bar_length):
-        drum_note_total.extend(drum_pattern.pattern)
-    drum_wrapper = NoteWrapper(drum_note_total, drum_pattern.division, is_drum=True)
+    for _ in range(bar_part // real_drum_pattern.bar_length):
+        drum_note_total.extend(real_drum_pattern.pattern)
+    
+    if fill_in_pattern is not None:
+        start_index = real_drum_pattern.division * fill_in_pattern.bar_length
+        drum_note_total[-start_index:] = fill_in_pattern.pattern
+
+    drum_wrapper = NoteWrapper(drum_note_total, real_drum_pattern.division, is_drum=True)
 
     return [melody_wrapper, chord_wrapper, drum_wrapper]
 
@@ -238,7 +252,7 @@ def make_song(
             pattern=ArpeggioPattern(pat_method='one-five', dur_method='stacato'),
             division=8,
         ),
-        drum_pattern=drum_patterns[0],
+        drum_pattern=drum_patterns['newage']['intro'][0],
         randomness=randomness_selection[0],
         bar_part=4,
         measure=(4, 4),
@@ -250,10 +264,11 @@ def make_song(
             pattern=ArpeggioPattern(pat_method='one-five', dur_method='stacato'),
             division=8,
         ),
-        drum_pattern=drum_patterns[1],
+        drum_pattern=drum_patterns['newage']['verse'][0],
         randomness=randomness_selection[1],
         bar_part=8,
         measure=(4, 4),
+        fill_in_pattern=drum_patterns['newage']['fill_in'][0],
     )
     chorus = create_part(
         scale=default_scale,
@@ -262,7 +277,7 @@ def make_song(
             pattern=ArpeggioPattern(pat_method='one-five', dur_method='stacato'),
             division=8,
         ),
-        drum_pattern=drum_patterns[1],
+        drum_pattern=drum_patterns['newage']['verse'][1],
         randomness=randomness_selection[2],
         bar_part=8,
         measure=(4, 4),
@@ -274,10 +289,11 @@ def make_song(
             pattern=ArpeggioPattern(pat_method='one-five', dur_method='stacato'),
             division=8,
         ),
-        drum_pattern=drum_patterns[1],
+        drum_pattern=drum_patterns['newage']['verse'][0],
         randomness=randomness_selection[3],
         bar_part=8,
         measure=(4, 4),
+        fill_in_pattern=drum_patterns['newage']['fill_in'][0],
     )
 
     merge_part(
