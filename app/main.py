@@ -1,28 +1,14 @@
-import asyncio
+import json
+import os
+import uuid
 import logging
 import traceback
-from typing import Literal
-from fastapi import FastAPI, BackgroundTasks, Request, Response
+import base64
 from pydantic import BaseModel
-from fastapi.responses import FileResponse, JSONResponse
-from fastapi.middleware.cors import CORSMiddleware
-from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.types import ASGIApp
+from typing import Literal
 from app.generator import generator
 from app.util import convert
 from app.util.logger import CustomFormatter
-import uuid
-from concurrent.futures import ThreadPoolExecutor
-import os
-
-class MusicBody(BaseModel):
-    genre: Literal['newage', 'retro']
-    mood: Literal['happy', 'sad', 'grand']
-    tempo: Literal['slow', 'moderate', 'fast']
-
-app = FastAPI()
-
-executor = ThreadPoolExecutor(max_workers=1)
 
 logger = logging.getLogger("main")
 logger.setLevel(logging.DEBUG)
@@ -30,76 +16,89 @@ ch = logging.StreamHandler()
 ch.setFormatter(CustomFormatter())
 logger.addHandler(ch)
 
-assets_dir_path = './app/assets/'
-music_dir_path = assets_dir_path + 'music/'
+class MusicBody(BaseModel):
+    genre: Literal['newage', 'retro']
+    mood: Literal['happy', 'sad', 'grand']
+    tempo: Literal['slow', 'moderate', 'fast']
 
-async def delete_music_file(music_uuid: str):
-    global music_dir_path
+def handler(event, context):
+    # POST 요청의 body에서 데이터를 가져옴
+    # body = json.loads(event['body'])
+    body = event
+    
+    # 받은 데이터를 처리
+    message = body.get('message', 'No message received')
 
-    midi_file = music_dir_path + f'{music_uuid}.mid'
-    mp3_file = music_dir_path + f'{music_uuid}.mp3'
+    genre = body.get('genre')
+    mood = body.get('mood')
+    tempo = body.get('tempo')
 
-    timeout = 100
+    music_body = {
+        'genre': genre,
+        'mood': mood,
+        'tempo': tempo
+    }
 
-    try:
-        await asyncio.sleep(timeout)
-        os.remove(midi_file)
-        os.remove(mp3_file)
-        print(f'deleted {music_uuid}.mid, {music_uuid}.mp3')
-    except Exception as e:
-        logger.error(e)
-        logger.info(traceback.format_exc())
+    # 응답 생성
+    response = get_music(music_body)
+    
+    return response
 
-        print('failed to remove')
+def get_failed_response():
+    return {
+        'statusCode': 500,
+        'headers': {},
+        'body': '',
+        'isBase64Encoded': False
+    }
 
-@app.post('/music', status_code=200)
-async def get_music(music_body: MusicBody, background_tasks: BackgroundTasks):
+def get_mp3_response(mp3_file_path):
+    with open(mp3_file_path, 'rb') as file:
+        file_content = file.read()
+        encoded_content = base64.b64encode(file_content).decode('utf-8')
+
+    return {
+        'statusCode': 200,
+        'headers': {
+            'Content-Type': 'audio/mpeg',  # 파일 유형에 맞는 Content-Type 설정
+        },
+        'body': encoded_content,
+        'isBase64Encoded': True
+    }
+
+def get_music(music_body):
+    assets_dir_path = '/tmp/assets/'
+    music_dir_path = assets_dir_path + 'music/'
+
     uuid_prefix = str(uuid.uuid1())
     midi_file = music_dir_path + f'{uuid_prefix}.mid'
     mp3_file = music_dir_path + f'{uuid_prefix}.mp3'
     soundfont_path = assets_dir_path + 'soundfont.sf2'
 
-    header = {
-        'isSuccess': 'true',
-        'code': '200',
-        'message': '',
-    }
-
+    if not os.path.exists(music_dir_path):
+        os.makedirs(music_dir_path)
     try:
         generator.make_song(
-            genre=music_body.genre,
-            mood=music_body.mood,
-            tempo=music_body.tempo,
+            genre=music_body['genre'],
+            mood=music_body['mood'],
+            tempo=music_body['tempo'],
             music_path=midi_file,
         )
     except Exception as e:
-        header['isSuccess'] = 'false'
-        header['code'] = '500'
-        header['message'] = 'music generation fail'
-
         logger.error(e)
         logger.info(traceback.format_exc())
 
         # 비어있는 파일을 반환
-        return JSONResponse('', headers=header)
+        return get_failed_response()
     
     try:
-        future = executor.submit(convert.midi_to_mp3, midi_file, soundfont_path, mp3_file)
-        future.result()
+        convert.midi_to_mp3(midi_file, soundfont_path, mp3_file)
 
     except Exception as e:
-        header['isSuccess'] = 'false'
-        header['code'] = '500'
-        header['message'] = 'music rendering fail'
-
         logger.error(e)
         logger.info(traceback.format_exc())
 
         # 비어있는 파일을 반환
-        return JSONResponse('', headers=header)
+        return get_failed_response()
 
-    header['message'] = 'music generation success'
-
-    background_tasks.add_task(delete_music_file, uuid_prefix)
-
-    return FileResponse(mp3_file, headers=header)
+    return get_mp3_response(mp3_file)

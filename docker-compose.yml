@@ -3,7 +3,11 @@ services:
     image: "showpang/fastapi"
     platform: linux/amd64
     ports:
-      - "8000:8000"
+      - "8000:8080"
     build:
       context: .
       dockerfile: './dockerfiles/Dockerfile'
+    volumes:
+      - ~/.aws-lambda-rie:/aws-lambda
+    entrypoint: /aws-lambda/aws-lambda-rie
+    command: /usr/local/bin/python -m awslambdaric app.main.handler
