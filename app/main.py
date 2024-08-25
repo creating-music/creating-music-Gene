@@ -21,29 +21,6 @@ class MusicBody(BaseModel):
     mood: Literal['happy', 'sad', 'grand']
     tempo: Literal['slow', 'moderate', 'fast']
 
-def handler(event, context):
-    # POST 요청의 body에서 데이터를 가져옴
-    # body = json.loads(event['body'])
-    body = event
-    
-    # 받은 데이터를 처리
-    message = body.get('message', 'No message received')
-
-    genre = body.get('genre')
-    mood = body.get('mood')
-    tempo = body.get('tempo')
-
-    music_body = {
-        'genre': genre,
-        'mood': mood,
-        'tempo': tempo
-    }
-
-    # 응답 생성
-    response = get_music(music_body)
-    
-    return response
-
 def get_failed_response():
     return {
         'statusCode': 500,
@@ -57,14 +34,43 @@ def get_mp3_response(mp3_file_path):
         file_content = file.read()
         encoded_content = base64.b64encode(file_content).decode('utf-8')
 
+    # return {
+    #     'statusCode': 200,
+    #     'headers': {
+    #         'Content-Type': 'audio/mpeg',  # 파일 유형에 맞는 Content-Type 설정
+    #     },
+    #     'body': encoded_content,
+    #     'isBase64Encoded': True
+    # }
     return {
         'statusCode': 200,
         'headers': {
-            'Content-Type': 'audio/mpeg',  # 파일 유형에 맞는 Content-Type 설정
         },
-        'body': encoded_content,
-        'isBase64Encoded': True
+        'body': 'yes!',
+        'isBase64Encoded': False
     }
+
+def handler(event, context):
+    # POST 요청의 body에서 데이터를 가져옴
+    body = json.loads(event['body'])
+
+    genre = body.get('genre')
+    mood = body.get('mood')
+    tempo = body.get('tempo')
+
+    if (genre == None or mood == None or tempo == None):
+        return get_failed_response()
+
+    music_body = {
+        'genre': genre,
+        'mood': mood,
+        'tempo': tempo
+    }
+
+    # 응답 생성
+    response = get_music(music_body)
+    
+    return response
 
 def get_music(music_body):
     assets_dir_path = '/tmp/assets/'
