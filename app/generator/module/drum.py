@@ -29,7 +29,7 @@ class DrumPattern():
             for part_key, part_pattern 
             in input_patterns.items()
         ]
-        if (toms_pattern_mapped):
+        if (len(toms_pattern) > 0):
             toms_pattern_mapped = np.array(toms_pattern)
             drums.append(toms_pattern_mapped)
 
@@ -68,9 +68,10 @@ drum_patterns = {
         'empty': [
             DrumPattern(
                 name = "newage_intro",
-                input_pattern = {
+                input_patterns = {
                     'bass_drum': [0],
                 },
+                toms_pattern=[],
                 division=1,
                 bar_length=1,
             ),
@@ -80,9 +81,10 @@ drum_patterns = {
         'intro': [
             DrumPattern(
                 name = "newage_intro",
-                input_pattern = {
+                input_patterns = {
                     'bass_drum': [0],
                 },
+                toms_pattern=[],
                 division=1,
                 bar_length=1,
             ),
@@ -90,11 +92,11 @@ drum_patterns = {
         'fill_in': [
             DrumPattern(
                 name = "newage_fill_in",
-                input_pattern = {
+                input_patterns = {
                     'bass_drum': [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0,],
                     'snare_drum': [0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0,],
                     'hihat_closed': [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,],
-                    'hihat_open': [1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0,],
+                    'hihat_opened': [1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0,],
                     'cymbals_crash': [1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0,],
                 },
                 toms_pattern= [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 48, 47, 45,],
@@ -105,7 +107,7 @@ drum_patterns = {
         'verse': [
             DrumPattern(
                 name = "8bit_default",
-                input_pattern = {
+                input_patterns = {
                     'bass_drum'  : [1, 0, 0, 0, 0, 1, 0, 0] * 4,
                     'snare_drum' : [0, 0, 1, 0, 0, 0, 1, 0] * 4,
                     'hihat_closed' : [1, 1, 1, 1, 1, 1, 1, 1] * 4,
@@ -118,7 +120,7 @@ drum_patterns = {
             ),
             DrumPattern(
                 name = "16bit_slow",
-                input_pattern = {
+                input_patterns = {
                     'bass_drum'  : [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0,] * 4,
                     'snare_drum' : [0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 1,] * 4,
                     'hihat_closed' : [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0,] * 4,
@@ -135,11 +137,12 @@ drum_patterns = {
         'intro': [
             DrumPattern(
                 name= "bossanova",
-                input_pattern = {
+                input_patterns = {
                     'bass_drum': [1, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 0,] * 2,
                     'snare_rim': [1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0,] * 2,
                     'ride':      [1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0,] * 2,
                 },
+                toms_pattern=[],
                 division=8,
                 bar_length=4,
             )
