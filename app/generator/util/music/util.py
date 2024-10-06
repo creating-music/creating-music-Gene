@@ -25,6 +25,9 @@ def get_transposed_chord(chord: Chord, amount: int):
     return c
 
 def get_transposed_cp(cp: ChordProgression, amount: int):
-    c = ChordProgression(cp.chords)
+    c = ChordProgression([*cp.chords]) # type: ignore
     c.transpose(amount)
     return c
+
+def calc_scale_from_chord(original_scale, chord):
+    pass

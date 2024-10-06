@@ -131,7 +131,7 @@ class Melody():
             self.velocity = []
             self.build_velocity()
 
-    def __str__(self, with_name=False):
+    def __str__(self, with_name=True):
         if (not with_name):
             return str(self.notes)
 
@@ -201,7 +201,7 @@ class Melody():
 
         notes = []
         for (cp, pattern) in zip(cps, patterns):
-            bar_notes = self._make_bar(cp, pattern, self.ref_note)
+            bar_notes = self._make_bar(cp, pattern, self.ref_note)  # type: ignore
             self.ref_note = bar_notes[-1][0]
             notes.extend(bar_notes)
 

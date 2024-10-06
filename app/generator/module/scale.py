@@ -17,8 +17,7 @@ class Scale:
         mode
     ):
         self.root = root                    # 근음. ex) 'C'
-        # 스케일의 음 간격. ex) [0, 2, 4, 5, 7, 9, 11]
-        self.default_scale = scale
+        self.default_scale = scale          # 스케일의 음 간격. ex) [0, 2, 4, 5, 7, 9, 11]
         self.scale: Union[set[int], None] = None                   # 실제 스케일의 음.
         self.mode = mode                    # 몇 번째 모드인지. 1 이면 원래 스케일과 동일.
         self.scale_name = None              # 스케일의 이름 (Major, Minor...)
@@ -108,6 +107,9 @@ class Scale:
 
     def print_scale(self):
         print(f'{self.root} {self.scale_name}')
+
+    def __str__(self):
+        return f'{self.root} {self.scale_name}'
 
 
 class MajorScale(Scale):
