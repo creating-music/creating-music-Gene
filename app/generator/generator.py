@@ -1,3 +1,4 @@
+from selectors import DefaultSelector
 import pretty_midi
 import numpy as np
 import random
@@ -243,7 +244,11 @@ def make_song(
     deviation = random.randint(0, 11)
     default_scale = MajorScale(get_transposed_root('C', deviation))
 
-    chords_selection = [get_transposed_cp(random.choice(chord_progressions), deviation) for _ in range(4)]
+    chords_selection = []
+    for _ in range(4):
+        random_chords = random.choice(chord_progressions)
+        cp = ChordProgression(list(random_chords))
+        chords_selection.append(get_transposed_cp(cp, deviation))
 
     inoutro = create_part(
         scale=default_scale,
